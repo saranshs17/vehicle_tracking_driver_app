@@ -41,7 +41,7 @@ data class UpdateProfileRequest(
 data class Request(
     val _id: String,
     val user: User,
-    val driver: Driver,
+    val driverId: String,
     val status: String, // pending, accepted, etc.
     val createdAt: String,
     val updatedAt: String
@@ -64,12 +64,4 @@ data class User(
     val name: String,
     val email: String,
     val phone: String,
-)
-
-data class Driver(
-    val _id: String,
-    val name: String,
-    val email: String,
-    val phone: String,
-    val plateNumber: String,
 )
