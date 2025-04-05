@@ -46,4 +46,7 @@ interface ApiService {
 
     @GET("api/driver/acceptedRequests")
     fun getAcceptedRequests(@Header("Authorization") token: String): Call<List<Request>>
+    @PUT("api/driver/request/board")
+    fun boardUserRequest(@Header("Authorization") token: String, @Query("userId") userId: String): Call<GenericResponse>
+
 }

@@ -63,7 +63,8 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var tvUserName: TextView
     private lateinit var tvUserContact: TextView
     private lateinit var dragHandle: View
-
+    private lateinit var btnBoard: Button
+    private var selectedUserId: String? = null
     // Bottom navigation view.
     private lateinit var bottomNavigationView: BottomNavigationView
 
@@ -89,14 +90,18 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
         bottomSheetBehavior.isHideable = true
         bottomSheetBehavior.skipCollapsed = false
         bottomSheetBehavior.peekHeight = 120
+        btnBoard = findViewById(R.id.btnBoard)
 
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    selectedUserId = null
+                }
             }
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
                 val alpha = 0.5f + slideOffset / 2
                 tvUserContact.alpha = alpha
+                btnBoard.alpha = alpha
             }
         })
 
@@ -105,6 +110,12 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
             } else if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
+        }
+        // When the Board button is pressed, remove the user's location and update the request status.
+        btnBoard.setOnClickListener {
+            selectedUserId?.let { userId ->
+                boardUser(userId)
             }
         }
 
@@ -182,6 +193,7 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.setOnMarkerClickListener { marker: Marker ->
             val userID = marker.title
             if (userID != null) {
+                selectedUserId = userID
                 fetchUserDetailsFromBackend(userID)
             }
             true
@@ -280,7 +292,33 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         })
     }
-
+    // This function will remove the accepted user's location from Firebase and update the request status to "boarded" in the backend.
+    private fun boardUser(userId: String) {
+        // First, remove the user's location node from Firebase.
+        val userLocationRef = FirebaseDatabase.getInstance().getReference("user_locations").child(userId)
+        userLocationRef.removeValue().addOnSuccessListener {
+            // After removal, update the request status in the backend.
+            val token = getSharedPreferences("driver_prefs", MODE_PRIVATE).getString("token", "") ?: ""
+            val apiService = RetrofitClient.instance.create(ApiService::class.java)
+            // Assume you have an endpoint that boards a user given the userId.
+            apiService.boardUserRequest("Bearer $token", userId)
+                .enqueue(object : Callback<GenericResponse> {
+                    override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+                        if (response.isSuccessful) {
+                            Toast.makeText(this@HomeActivity, "User boarded successfully.", Toast.LENGTH_SHORT).show()
+                            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+                        } else {
+                            Toast.makeText(this@HomeActivity, "Failed to update request status.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
+                        Toast.makeText(this@HomeActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        }.addOnFailureListener { e ->
+            Toast.makeText(this, "Error removing location: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
     // Fetch user details from backend using GET /api/user/{id}.
     private fun fetchUserDetailsFromBackend(userId: String) {
         val token = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("token", "") ?: ""
