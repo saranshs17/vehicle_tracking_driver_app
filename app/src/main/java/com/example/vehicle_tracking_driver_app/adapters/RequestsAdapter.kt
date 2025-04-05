@@ -8,15 +8,20 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.vehicle_tracking_driver_app.R
+import com.example.vehicle_tracking_driver_app.activities.RequestsActivity
 import com.example.vehicle_tracking_driver_app.models.Request
+
 
 class RequestsAdapter(
     private val requests: List<Request>,
-    private val context: Context
+    private val context: Context,
+    private val listener: RequestsActivity
 ) : RecyclerView.Adapter<RequestsAdapter.RequestViewHolder>() {
 
     inner class RequestViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvUserName: TextView = itemView.findViewById(R.id.tvUserName)
+        val tvUserPhone: TextView = itemView.findViewById(R.id.tvUserPhone)
+        val tvUserStatus: TextView = itemView.findViewById(R.id.tvUserStatus)
         val btnAccept: Button = itemView.findViewById(R.id.btnAccept)
         val btnReject: Button = itemView.findViewById(R.id.btnReject)
     }
@@ -28,14 +33,16 @@ class RequestsAdapter(
 
     override fun onBindViewHolder(holder: RequestViewHolder, position: Int) {
         val request = requests[position]
-        // Show the user's id here; you might want to look up user details separately if needed.
+
         holder.tvUserName.text = "User: ${request.user.name}"
+        holder.tvUserPhone.text = "User: ${request.user.phone}"
+        holder.tvUserStatus.text = "User: ${request.status}"
 
         holder.btnAccept.setOnClickListener {
-            // Implement your accept logic here (e.g., call an API to update the request status).
+            listener.onAcceptRequest(request)
         }
         holder.btnReject.setOnClickListener {
-            // Implement your reject logic here.
+            listener.onRejectRequest(request)
         }
     }
 

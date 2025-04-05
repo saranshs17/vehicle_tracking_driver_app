@@ -42,7 +42,7 @@ data class Request(
     val _id: String,
     val user: User,
     val driverId: String,
-    val status: String, // pending, accepted, etc.
+    val status: String, // pending, accepted, rejected, boarded, reached
     val createdAt: String,
     val updatedAt: String
 )
@@ -64,4 +64,11 @@ data class User(
     val name: String,
     val email: String,
     val phone: String,
+)
+
+data class UserResponse(
+    val _id: String,
+    val name: String,
+    val email: String,
+    val phone: String
 )

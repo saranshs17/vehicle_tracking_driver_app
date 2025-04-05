@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.vehicle_tracking_driver_app.R
 import com.example.vehicle_tracking_driver_app.adapters.RequestsAdapter
+import com.example.vehicle_tracking_driver_app.models.GenericResponse
 import com.example.vehicle_tracking_driver_app.models.Request
 import com.example.vehicle_tracking_driver_app.network.ApiService
 import com.example.vehicle_tracking_driver_app.network.RetrofitClient
@@ -26,7 +27,7 @@ class RequestsActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerViewRequests)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = RequestsAdapter(requestsList, this)
+        adapter = RequestsAdapter(requestsList, this,this)
         recyclerView.adapter = adapter
 
         loadRequests()
@@ -38,16 +39,57 @@ class RequestsActivity : AppCompatActivity() {
         apiService.getRequests("Bearer $token").enqueue(object : Callback<List<Request>> {
             override fun onResponse(call: Call<List<Request>>, response: Response<List<Request>>) {
                 if (response.isSuccessful) {
+                    // Filter to only include pending requests
+                    val allRequests = response.body() ?: emptyList()
+                    val pendingRequests = allRequests.filter { it.status.equals("pending", ignoreCase = true) }
                     requestsList.clear()
-                    response.body()?.let { list ->
-                        requestsList.addAll(list)
-                    }
+                    requestsList.addAll(pendingRequests)
                     adapter.notifyDataSetChanged()
                 } else {
                     Toast.makeText(this@RequestsActivity, "Failed to load requests", Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<List<Request>>, t: Throwable) {
+                Toast.makeText(this@RequestsActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+    fun onAcceptRequest(request: Request) {
+        val token = getSharedPreferences("driver_prefs", MODE_PRIVATE).getString("token", "") ?: ""
+        val apiService = RetrofitClient.instance.create(ApiService::class.java)
+        apiService.acceptRequest("Bearer $token", request._id).enqueue(object : Callback<com.example.vehicle_tracking_driver_app.models.GenericResponse> {
+            override fun onResponse(call: Call<com.example.vehicle_tracking_driver_app.models.GenericResponse>, response: Response<com.example.vehicle_tracking_driver_app.models.GenericResponse>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@RequestsActivity, "Request accepted.", Toast.LENGTH_SHORT).show()
+                    // Remove accepted request from list
+                    requestsList.remove(request)
+                    adapter.notifyDataSetChanged()
+                } else {
+                    Toast.makeText(this@RequestsActivity, "Failed to accept request.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<com.example.vehicle_tracking_driver_app.models.GenericResponse>, t: Throwable) {
+                Toast.makeText(this@RequestsActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    fun onRejectRequest(request: Request) {
+        val token = getSharedPreferences("driver_prefs", MODE_PRIVATE).getString("token", "") ?: ""
+        val apiService = RetrofitClient.instance.create(ApiService::class.java)
+        // The backend endpoint for rejection should update status and remove the request.
+        apiService.rejectRequest("Bearer $token", request._id).enqueue(object : Callback<com.example.vehicle_tracking_driver_app.models.GenericResponse> {
+            override fun onResponse(call: Call<com.example.vehicle_tracking_driver_app.models.GenericResponse>, response: Response<com.example.vehicle_tracking_driver_app.models.GenericResponse>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@RequestsActivity, "Request rejected and removed.", Toast.LENGTH_SHORT).show()
+                    // Remove rejected request from list
+                    requestsList.remove(request)
+                    adapter.notifyDataSetChanged()
+                } else {
+                    Toast.makeText(this@RequestsActivity, "Failed to reject request.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<com.example.vehicle_tracking_driver_app.models.GenericResponse>, t: Throwable) {
                 Toast.makeText(this@RequestsActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })

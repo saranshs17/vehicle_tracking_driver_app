@@ -12,10 +12,7 @@ interface ApiService {
     @POST("api/driver/login")
     fun login(@Body loginRequest: DriverLoginRequest): Call<LoginResponse>
     @POST("api/driver/request")
-    fun requestDriver(
-        @Header("Authorization") token: String,
-        @Body request: DriverRequest
-    ): Call<GenericResponse>
+    fun requestDriver(@Header("Authorization") token: String, @Body request: DriverRequest): Call<GenericResponse>
     // Profile endpoints
     @GET("api/driver/profile")
     fun getProfile(@Header("Authorization") token: String): Call<DriverProfile>
@@ -43,4 +40,10 @@ interface ApiService {
     // Update FCM token for driver
     @PUT("api/driver/updateToken")
     fun updateToken(@Header("Authorization") token: String, @Body tokenUpdate: TokenUpdateRequest): Call<GenericResponse>
+
+    @GET("api/user/{userID}")
+    fun getUserById(@Header("Authorization") token: String, @Path("userID") userId: String): Call<UserResponse>
+
+    @GET("api/driver/acceptedRequests")
+    fun getAcceptedRequests(@Header("Authorization") token: String): Call<List<Request>>
 }
