@@ -3,6 +3,8 @@ package com.example.vehicle_tracking_driver_app.activities
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
@@ -11,9 +13,11 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.example.vehicle_tracking_driver_app.R
 import com.example.vehicle_tracking_driver_app.models.DriverRequest
 import com.example.vehicle_tracking_driver_app.models.GenericResponse
@@ -30,15 +34,19 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.navigation.NavigationView
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
+import nl.psdcompany.duonavigationdrawer.views.DuoDrawerLayout
+import nl.psdcompany.duonavigationdrawer.widgets.DuoDrawerToggle
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -67,7 +75,6 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
     private var selectedUserId: String? = null
     // Bottom navigation view.
     private lateinit var bottomNavigationView: BottomNavigationView
-
     // For continuous location updates.
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -78,6 +85,7 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
 
         // Initialize bottom sheet views.
         bottomSheet = findViewById(R.id.bottomSheet)
@@ -119,7 +127,7 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        // Bottom navigation setup.
+//         Bottom navigation setup.
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
@@ -135,6 +143,7 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
                 else -> false
             }
         }
+
 
         // Initialize FusedLocationProviderClient.
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -162,9 +171,22 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
         // Fetch accepted requests (and thus accepted user IDs) for this driver.
         fetchAcceptedRequests()
     }
-
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val styleRes = if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+            R.raw.midnight // Your night style JSON file in res/raw
+        } else {
+            R.raw.gmaps       // Your day style JSON file in res/raw
+        }
+        try {
+            val success = mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, styleRes))
+            if (!success) {
+                Log.e("MapStyle", "Style parsing failed.")
+            }
+        } catch (e: Resources.NotFoundException) {
+            Log.e("MapStyle", "Can't find style. Error: ", e)
+        }
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(
