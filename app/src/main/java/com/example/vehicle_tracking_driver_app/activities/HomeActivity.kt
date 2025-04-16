@@ -1,7 +1,10 @@
 package com.example.vehicle_tracking_driver_app.activities
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -13,11 +16,13 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.vehicle_tracking_driver_app.R
 import com.example.vehicle_tracking_driver_app.models.DriverRequest
 import com.example.vehicle_tracking_driver_app.models.GenericResponse
@@ -39,6 +44,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -81,9 +87,16 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // The driver's unique MongoDB ObjectId.
     private var driverId: String? = null
+    private val refreshMapReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            fetchAcceptedRequests()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        DynamicColors.applyToActivityIfAvailable(this)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_home)
 
 
@@ -99,6 +112,11 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
         bottomSheetBehavior.skipCollapsed = false
         bottomSheetBehavior.peekHeight = 120
         btnBoard = findViewById(R.id.btnBoard)
+
+        // Register the broadcast receiver
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(refreshMapReceiver, IntentFilter("com.example.vehicle_tracking_driver_app.REFRESH_MAP"))
+
 
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {

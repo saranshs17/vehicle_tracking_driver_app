@@ -1,8 +1,11 @@
 package com.example.vehicle_tracking_driver_app.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.vehicle_tracking_driver_app.R
@@ -11,6 +14,7 @@ import com.example.vehicle_tracking_driver_app.models.GenericResponse
 import com.example.vehicle_tracking_driver_app.models.Request
 import com.example.vehicle_tracking_driver_app.network.ApiService
 import com.example.vehicle_tracking_driver_app.network.RetrofitClient
+import com.google.android.material.color.DynamicColors
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -23,6 +27,8 @@ class RequestsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        DynamicColors.applyToActivityIfAvailable(this)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_requests)
 
         recyclerView = findViewById(R.id.recyclerViewRequests)
@@ -62,8 +68,12 @@ class RequestsActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     Toast.makeText(this@RequestsActivity, "Request accepted.", Toast.LENGTH_SHORT).show()
                     // Remove accepted request from list
+                    // Send broadcast to refresh the map
+                    val intent = Intent("com.example.vehicle_tracking_driver_app.REFRESH_MAP")
+                    LocalBroadcastManager.getInstance(this@RequestsActivity).sendBroadcast(intent)
                     requestsList.remove(request)
                     adapter.notifyDataSetChanged()
+                    finish()
                 } else {
                     Toast.makeText(this@RequestsActivity, "Failed to accept request.", Toast.LENGTH_SHORT).show()
                 }

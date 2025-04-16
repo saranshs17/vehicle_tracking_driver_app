@@ -35,8 +35,8 @@ class RequestsAdapter(
         val request = requests[position]
 
         holder.tvUserName.text = "User: ${request.user.name}"
-        holder.tvUserPhone.text = "User: ${request.user.phone}"
-        holder.tvUserStatus.text = "User: ${request.status}"
+        holder.tvUserPhone.text = "Phone: ${request.user.phone}"
+        holder.tvUserStatus.text = "Status: ${request.status}"
 
         holder.btnAccept.setOnClickListener {
             listener.onAcceptRequest(request)

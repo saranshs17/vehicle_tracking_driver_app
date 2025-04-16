@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.vehicle_tracking_driver_app.R
 import com.example.vehicle_tracking_driver_app.models.DriverProfile
 import com.example.vehicle_tracking_driver_app.models.UpdateProfileRequest
 import com.example.vehicle_tracking_driver_app.network.ApiService
 import com.example.vehicle_tracking_driver_app.network.RetrofitClient
+import com.google.android.material.color.DynamicColors
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -25,6 +27,8 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        DynamicColors.applyToActivityIfAvailable(this)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_profile)
 
         etName = findViewById(R.id.etName)

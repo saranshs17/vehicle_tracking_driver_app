@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.vehicle_tracking_driver_app.R
 import com.example.vehicle_tracking_driver_app.models.DriverLoginRequest
@@ -14,6 +15,7 @@ import com.example.vehicle_tracking_driver_app.network.ApiService
 import com.example.vehicle_tracking_driver_app.network.RetrofitClient
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
+import com.google.android.material.color.DynamicColors
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 import retrofit2.Call
@@ -29,6 +31,8 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        DynamicColors.applyToActivityIfAvailable(this)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_login)
 
         etEmail = findViewById(R.id.etEmail)
