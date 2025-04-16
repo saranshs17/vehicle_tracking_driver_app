@@ -9,11 +9,13 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -21,6 +23,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.vehicle_tracking_driver_app.R
@@ -78,6 +81,7 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var tvUserContact: TextView
     private lateinit var dragHandle: View
     private lateinit var btnBoard: Button
+    private lateinit var callicon:ImageView
     private var selectedUserId: String? = null
     // Bottom navigation view.
     private lateinit var bottomNavigationView: BottomNavigationView
@@ -112,6 +116,7 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
         bottomSheetBehavior.skipCollapsed = false
         bottomSheetBehavior.peekHeight = 120
         btnBoard = findViewById(R.id.btnBoard)
+        callicon = findViewById(R.id.call_icon)
 
         // Register the broadcast receiver
         LocalBroadcastManager.getInstance(this)
@@ -371,6 +376,12 @@ class HomeActivity : AppCompatActivity(), OnMapReadyCallback {
                         tvUserName.text = "User: ${userData.name}"
                         tvUserContact.text = "Phone: ${userData.phone}"
                         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                        callicon.setOnClickListener {
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:${userData.phone}")
+                            }
+                            ContextCompat.startActivity(it.context, intent, null)
+                        }
                     }
                 } else {
                     Toast.makeText(this@HomeActivity, "User details not found (API).", Toast.LENGTH_SHORT).show()
